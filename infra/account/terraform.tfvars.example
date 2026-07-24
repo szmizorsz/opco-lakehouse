@@ -1,0 +1,5 @@
+# cp terraform.tfvars.example terraform.tfvars  &&  fill in the two IDs
+subscription_id       = "00000000-0000-0000-0000-000000000000"
+databricks_account_id = "00000000-0000-0000-0000-000000000000"
+region                = "westeurope"
+environments          = ["dev", "uat", "prd"]

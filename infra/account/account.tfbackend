@@ -1,0 +1,5 @@
+# terraform init -backend-config=account.tfbackend
+resource_group_name  = "rg-lkh-mgmt"
+storage_account_name = "stlkhtfstate<suffix>" # match bootstrap STATE_SA
+container_name       = "tfstate"
+key                  = "account.tfstate"

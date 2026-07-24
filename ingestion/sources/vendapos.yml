@@ -1,0 +1,55 @@
+# Source metadata — VendaPOS (Alpina Sports' POS system, REST API)
+#
+# Declarative input to the metadata-driven REST ingestion framework (ADR-0003).
+# Each entity states WHAT a fetched batch means (load_type) and HOW the API is
+# asked (param_style). The framework derives watermarks, requests, and landing
+# behavior — there is no per-entity code.
+
+source: vendapos
+kind: rest
+base_url: "https://{tenant}.api.vendapos.example/v2"   # resolved per env from parameter pack
+auth:
+  type: bearer_token
+  secret_scope: "lkh-{opco}-{env}"
+  secret_key: vendapos_token
+defaults:
+  format: json
+  page_size: 500
+  pagination: cursor            # cursor | page | none
+
+entities:
+  stores:
+    path: /stores
+    load_type: snapshot         # API returns current state of all stores
+    param_style: none           # unparameterized full pull
+    cadence: daily
+
+  products:
+    path: /products
+    load_type: snapshot
+    param_style: window         # API only serves products modified in a window;
+    window:                     # base layer accumulates history (never overwritten)
+      param_from: modifiedFrom
+      param_to: modifiedTo
+      max_days: 30
+    cadence: daily
+
+  sales:
+    path: /sales
+    load_type: delta            # API returns transactions since a point in time
+    param_style: window
+    window:
+      param_from: from
+      param_to: to
+      max_days: 7               # API hard limit per request; framework chunks
+    cadence: hourly
+    late_arriving_days: 3       # re-fetch overlap; dedup handled downstream
+
+  stock_movements:
+    path: /stock/movements
+    load_type: delta
+    param_style: threshold      # monotonic sequence number, no date params
+    threshold:
+      param: sinceSeq
+      key: seq
+    cadence: hourly

@@ -1,0 +1,6 @@
+__pycache__/
+.venv/
+.databricks/
+*.tfstate*
+.terraform/
+.DS_Store

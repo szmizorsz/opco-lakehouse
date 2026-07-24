@@ -1,0 +1,35 @@
+# OpCo parameter pack — Alpina Sports (the established OpCo)
+#
+# This file is the single onboarding artifact for an operating company.
+# Everything platform-side — catalogs, grants, ingestion jobs, pipeline
+# instances, bundle targets — is stamped from templates driven by this pack.
+
+opco: alp
+display_name: Alpina Sports
+status: active
+timezone: Europe/Vienna
+environments: [dev, uat, prd]
+
+# Source-aligned domains; catalog naming: {domain}_{opco}_{env}  →  pos_alp_prd
+domains:
+  pos:
+    source: vendapos            # REST API — see ingestion/sources/vendapos.yml
+  erp:
+    source: group_erp           # group-standard ERP, Lakeflow Connect (SQL Server CDC)
+  hr:
+    source: peoplesuite         # HR exports, Auto Loader over daily file drops
+  manual:
+    source: file_drops          # Excel price lists, campaign plans
+
+# Per-OpCo identity & isolation (full profile only)
+platform:
+  deployment_spn: SVC-LKH-ALP-DEPLOY
+  jobs_spn: SVC-LKH-ALP-JOBS
+  entra_group_prefix: "RBAC-LKH-ALP"
+  storage_prefix: "lkh-alp"     # external locations: {domain}-{opco}-{env}
+
+# Which shared gold/semantic products this OpCo feeds
+contributes_to:
+  - daily_sales
+  - stock_position
+  - workforce_costs

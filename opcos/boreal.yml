@@ -1,0 +1,29 @@
+# OpCo parameter pack — Boreal Outdoors (the newly acquired OpCo)
+#
+# Boreal arrives with a completely different source landscape than Alpina —
+# which is the point. The platform absorbs heterogeneity in the parameter
+# pack and the source metadata; nothing downstream is hand-built per OpCo.
+
+opco: bor
+display_name: Boreal Outdoors
+status: onboarding
+timezone: Europe/Stockholm
+environments: [dev, prd]        # smaller OpCo — no UAT tier (see assumptions log)
+
+domains:
+  pos:
+    source: nordkassa           # legacy POS: nightly file exports over SFTP, no API
+  erp:
+    source: boreal_navision     # own ERP (not yet migrated to group standard)
+  manual:
+    source: file_drops
+
+platform:
+  deployment_spn: SVC-LKH-BOR-DEPLOY
+  jobs_spn: SVC-LKH-BOR-JOBS
+  entra_group_prefix: "RBAC-LKH-BOR"
+  storage_prefix: "lkh-bor"
+
+contributes_to:
+  - daily_sales
+  - stock_position

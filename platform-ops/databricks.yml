@@ -1,0 +1,50 @@
+# Asset Bundle — one bundle, targets stamped per {opco}_{env}.
+#
+# Targets below are the generated form for two OpCos; M2 adds the generator
+# that renders this from opcos/*.yml so the file is never edited by hand.
+# Profile note (ADR-0002): `free` profile deploys the same bundle to a
+# Free Edition workspace — dev targets only, serverless by default.
+
+bundle:
+  name: opco-lakehouse
+
+variables:
+  opco:
+    description: OpCo token (alp, bor)
+  catalog:
+    description: Target catalog for this OpCo/env
+
+resources:
+  pipelines:
+    pos_silver:
+      name: ${var.opco}-pos-silver
+      catalog: ${var.catalog}
+      serverless: true
+      libraries:
+        - file:
+            path: ../pipelines/silver_sales.py
+      configuration:
+        lkh.opco: ${var.opco}
+        lkh.catalog: ${var.catalog}
+
+  jobs:
+    pos_ingest:
+      name: ${var.opco}-pos-ingest
+      tasks:
+        - task_key: ingest_rest_entities
+          spark_python_task:
+            python_file: ../ingestion/rest_ingest.py
+            parameters: ["--source", "vendapos", "--opco", "${var.opco}"]
+
+targets:
+  alp_dev:
+    default: true
+    variables: { opco: alp, catalog: pos_alp_dev }
+  alp_prd:
+    mode: production
+    variables: { opco: alp, catalog: pos_alp_prd }
+  bor_dev:
+    variables: { opco: bor, catalog: pos_bor_dev }
+  bor_prd:
+    mode: production
+    variables: { opco: bor, catalog: pos_bor_prd }
