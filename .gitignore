@@ -3,4 +3,6 @@ __pycache__/
 .databricks/
 *.tfstate*
 .terraform/
+terraform.tfvars
+*.auto.tfvars
 .DS_Store

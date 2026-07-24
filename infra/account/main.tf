@@ -1,5 +1,6 @@
 # The regional foundation — applied once, rarely changed (ADR-0001 topology):
-#   * one Unity Catalog metastore for the region
+#   * one Unity Catalog metastore for the region — CREATED in a fresh region/sandbox,
+#     or REUSED in a shared account where the region's metastore already exists
 #   * one workspace per environment (dev/uat/prd), all attached to that metastore
 #   * account-level groups (the group platform team)
 #
@@ -11,10 +12,17 @@ resource "azurerm_resource_group" "platform" {
   location = var.region
 }
 
+# Create-vs-reuse (ADR-0001): only one metastore may exist per region per account.
+# When existing_metastore_id is set we reuse it; otherwise we create one.
 module "metastore" {
   source = "../modules/metastore"
+  count  = var.existing_metastore_id == "" ? 1 : 0
   name   = "lkh-metastore-${var.region}"
   region = var.region
+}
+
+locals {
+  metastore_id = var.existing_metastore_id != "" ? var.existing_metastore_id : module.metastore[0].id
 }
 
 # One workspace per environment — the orthogonal axis from ADR-0001. Workspaces
@@ -29,11 +37,11 @@ module "workspace" {
   location            = var.region
 }
 
-# Attach every environment workspace to the single regional metastore.
+# Attach every environment workspace to the regional metastore (created or reused).
 resource "databricks_metastore_assignment" "this" {
   for_each     = module.workspace
   workspace_id = each.value.workspace_id
-  metastore_id = module.metastore.id
+  metastore_id = local.metastore_id
 }
 
 # Account-level group — the platform team. Per-OpCo RBAC groups

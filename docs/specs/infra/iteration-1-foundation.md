@@ -50,6 +50,10 @@ infra/
 - **Provider split is visible here:** `providers.tf` configures the **account-host** `databricks`
   provider (metastore/assignment/groups) alongside `azurerm` (workspaces) — the boundary from
   [infra/README.md](../../../infra/README.md).
+- **Metastore is create-or-reuse** via `existing_metastore_id`. A shared account already has a
+  metastore in the region (ADR-0001: one per region), so the stack *reuses* it (assignment only);
+  set the var to `""` for a fresh region/sandbox to *create* one. Each module also declares its own
+  `required_providers` (`versions.tf`) so the stack initialises cleanly.
 
 ## Interface consumed by later iterations
 
@@ -79,12 +83,13 @@ terraform apply
 
 - [x] Files exist, formatted, provider/auth split documented
 - [x] `metastore_id` / `workspace_urls` exposed as the Iteration-2 contract
-- [ ] `terraform validate` clean *(blocked: no CLI/creds in this environment)*
-- [ ] `plan`/`apply` verified against a live Azure subscription *(pending Azure access)*
+- [x] `terraform validate` clean
+- [x] `terraform plan` verified against Datapao (dry-run: reuses the WEU metastore, dev-only, 4 to add)
+- [ ] `terraform apply` — pending platform-owner sign-off + subscription Contributor rights
 
 ## Follow-ups
 
-- Promote the two unchecked DoD items once Azure access exists (first ephemeral apply).
+- Run the first ephemeral `apply` once sign-off + Contributor rights are in place (last DoD item).
 - Add a workspace-name row to [naming-standards.md](../../naming-standards.md) (`adb-lkh-{env}` —
   workspaces aren't in the table yet, since they're not per-OpCo).
 - Consider account-layer hardening in a later pass: metastore admin assignment, audit-log delivery,

@@ -20,6 +20,16 @@ variable "environments" {
   default     = ["dev", "uat", "prd"]
 }
 
+variable "existing_metastore_id" {
+  description = <<-EOT
+    Reuse an existing regional metastore instead of creating one. In a shared account the
+    region's metastore already exists (ADR-0001: one metastore per region), so set this to
+    its metastore_id. Leave "" to create a new metastore (fresh region / clean sandbox).
+  EOT
+  type        = string
+  default     = ""
+}
+
 variable "resource_group_name" {
   description = "Resource group that holds the shared, per-env workspaces."
   type        = string

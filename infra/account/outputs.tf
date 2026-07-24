@@ -1,6 +1,6 @@
 output "metastore_id" {
   description = "Passed to the platform/ stack as an input var (not via remote_state — ADR-0005)."
-  value       = module.metastore.id
+  value       = local.metastore_id
 }
 
 output "workspace_ids" {
