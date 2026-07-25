@@ -41,6 +41,13 @@ workspace and metastore. Everything below is the `full` (Azure + Terraform) prof
 
 ## 2. Target architecture
 
+The platform is built by **one bootstrap step plus four Terraform stacks**, deliberately split so
+each has its own lifecycle, blast radius, and state file. Read them as layers: `bootstrap` prepares
+somewhere to keep Terraform state, `account` builds the shared regional base, `platform` stamps each
+OpCo onto it, `networking` optionally hardens it, and `cicd` gives automation an identity. The rest
+of this section defines the stacks (2.1), how they authenticate (2.2) and store state (2.3), exactly
+what each creates (2.4), and what a reviewer actually sees in the Azure portal (2.5).
+
 ### 2.1 Stack map
 
 | # | Stack | Lifecycle | Providers | State key |
@@ -50,6 +57,26 @@ workspace and metastore. Everything below is the `full` (Azure + Terraform) prof
 | 2 | `platform/` | per OpCo × env | `azurerm` + `databricks`(workspace) | `platform-{opco}-{env}.tfstate` |
 | 3 | `networking/` | most-destroyed (idle cost) | `azurerm` | `networking-{env}.tfstate` |
 | 4 | `cicd/` | rarely | `azuread` + `azurerm` + `databricks`(account) | `cicd.tfstate` |
+
+**What each stack is for**
+
+- **`bootstrap/`** — the chicken-and-egg breaker. Before Terraform can store its state anywhere,
+  *something* must first create the storage that holds that state. A tiny one-time `az` script makes
+  a management resource group and a locked-down storage account, then gets out of the way. Run once
+  per subscription, never again.
+- **`account/`** — the shared regional foundation, built once and rarely touched. It owns the Unity
+  Catalog metastore (or reuses the region's existing one), the per-environment workspaces, and the
+  account-level admin group. Nothing here is OpCo-specific — it's the ground every OpCo stands on.
+- **`platform/`** — the per-OpCo stack, and the heart of the "onboard an OpCo = one parameter pack"
+  idea. Applied once per OpCo × environment, it reads `opcos/{opco}.yml` and stamps that OpCo's
+  catalogs, storage, identities, and grants. Adding an OpCo is a new parameter pack + a new state
+  key — no new code.
+- **`networking/`** — the optional "make it secure" stack: VNet injection, private endpoints, NAT.
+  Kept separate because it carries the platform's only meaningful idle cost, so it's the stack you
+  spin up and tear down most often.
+- **`cicd/`** — the identity CI deploys *with*. A keyless (OIDC) service principal plus just enough
+  permissions to run `terraform` and `bundle deploy`. It provisions *who CI is*, not *what CI does*
+  (those workflows live in platform-ops).
 
 ### 2.2 Provider & auth model
 
@@ -69,19 +96,25 @@ variables, so the key is passed per-stack via `-backend-config=*.tfbackend`. Loc
 
 ### 2.4 Resource inventory (the end state)
 
-**Stack 0 — `bootstrap/`**
+**Stack 0 — `bootstrap/`** — breaks the state chicken-and-egg: creates the one place Terraform state
+can live, *outside* any Terraform lifecycle so a `destroy` can never delete it. Run once, by hand.
 - `rg-opco-mgmt` (management RG, outside every Terraform lifecycle)
 - `stopcotfstate<suffix>` state SA — LRS, `shared_access_key_enabled = false`, blob versioning +
   soft-delete
 - container `tfstate`; RBAC `Storage Blob Data Contributor` to admins + CI SPN
 
-**Stack 1 — `account/`** *(regional foundation — see [iteration 1](iteration-1-foundation.md))*
+**Stack 1 — `account/`** *(regional foundation — see [iteration 1](iteration-1-foundation.md))* — the
+shared base every OpCo builds on: one metastore (created, or reused in a shared account), the
+per-environment workspaces, and the platform admin group. Applied once, rarely changed.
 - `databricks_metastore` — one per region, no metastore-root storage (catalog-level storage instead)
 - `azurerm_databricks_workspace` × env — `adb-opco-{env}`, Premium SKU
 - `databricks_metastore_assignment` × env
 - `databricks_group` `RBAC-OPCO-PLATFORM-Admin` (+ end-state: account SPN for CI, metastore admin)
 
-**Stack 2 — `platform/`** *(per OpCo × env, from `opcos/{opco}.yml`)* — for each `domain` × `env`:
+**Stack 2 — `platform/`** *(per OpCo × env, from `opcos/{opco}.yml`)* — everything a single OpCo
+needs, stamped from its parameter pack: data storage, the identities that reach it, the catalogs its
+data lands in, and the grants that govern them. This is what an onboarding PR triggers. For each
+`domain` × `env`:
 - `azurerm_storage_account` per OpCo (ADLS Gen2, HNS) + container `{storage_prefix}-{env}` per env
 - `azurerm_databricks_access_connector` per OpCo + `Storage Blob Data Contributor` role assignment
 - `databricks_storage_credential` (wraps the access connector) + `databricks_external_location`
@@ -90,12 +123,16 @@ variables, so the key is passed per-stack via `-backend-config=*.tfbackend`. Loc
 - `databricks_service_principal` `SVC-OPCO-{OPCO}-DEPLOY` and `SVC-OPCO-{OPCO}-JOBS`
 - `databricks_group` `RBAC-OPCO-{OPCO}-{role}` + `databricks_grants` on catalogs/schemas (grants as code)
 
-**Stack 3 — `networking/`** *(secure profile, optional, per env)*
+**Stack 3 — `networking/`** *(secure profile, optional, per env)* — wraps the workspaces and storage
+in private networking for the *secure* profile. Its own stack because private endpoints + NAT are
+the platform's main idle cost, so it's applied and destroyed most often.
 - `azurerm_virtual_network` + host/container subnets (VNet injection), NSGs
 - `azurerm_private_endpoint` for workspace + storage; private DNS zones
 - `azurerm_nat_gateway` (documented as the main idle cost — see ADR-0002 cost profile)
 
-**Stack 4 — `cicd/`** *(keyless CI identity only — the workflows that use it live in `platform-ops/`)*
+**Stack 4 — `cicd/`** *(keyless CI identity only — the workflows that use it live in `platform-ops/`)* —
+gives CI a keyless identity to deploy with: a federated service principal plus exactly the role
+assignments it needs, and nothing more.
 - `azuread_application` + SPN with **GitHub OIDC federated credentials** (no secrets)
 - role assignments: `Contributor` on platform RGs, `Storage Blob Data Contributor` on state + data SAs
 - Databricks account/workspace admin membership for the deploy SPN
