@@ -13,8 +13,8 @@
 set -euo pipefail
 
 LOCATION="${LOCATION:-westeurope}"
-MGMT_RG="${MGMT_RG:-rg-lkh-mgmt}"
-STATE_SA="${STATE_SA:?set STATE_SA to a globally-unique name, e.g. stlkhtfstate<suffix>}"
+MGMT_RG="${MGMT_RG:-rg-opco-mgmt}"
+STATE_SA="${STATE_SA:?set STATE_SA to a globally-unique name, e.g. stopcotfstate<suffix>}"
 STATE_CONTAINER="${STATE_CONTAINER:-tfstate}"
 
 echo "==> Resource group: ${MGMT_RG} (${LOCATION})"

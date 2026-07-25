@@ -10,7 +10,7 @@ kind: rest
 base_url: "https://{tenant}.api.vendapos.example/v2"   # resolved per env from parameter pack
 auth:
   type: bearer_token
-  secret_scope: "lkh-{opco}-{env}"
+  secret_scope: "opco-{opco}-{env}"
   secret_key: vendapos_token
 defaults:
   format: json

@@ -20,8 +20,8 @@ That model puts three hard constraints on state:
 **One management-scoped storage account, created by a one-time bootstrap step outside every
 Terraform lifecycle, holding one state file per stack, accessed keylessly via Entra ID.**
 
-- **Bootstrap** (`infra/bootstrap/bootstrap.sh`, az CLI): a dedicated `rg-lkh-mgmt` resource group
-  and a single state storage account `stlkhtfstate<suffix>`, created once per subscription and
+- **Bootstrap** (`infra/bootstrap/bootstrap.sh`, az CLI): a dedicated `rg-opco-mgmt` resource group
+  and a single state storage account `stopcotfstate<suffix>`, created once per subscription and
   never managed by a platform stack. Documented as "run once."
 - **The storage account:** Standard/LRS, hot tier, **blob versioning + soft-delete enabled** (a
   state time machine), **`shared_access_key_enabled = false`**, no public access. State locking is

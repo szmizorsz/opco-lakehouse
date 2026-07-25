@@ -1,4 +1,4 @@
-# Asset Bundle — one bundle, targets stamped per {opco}_{env}.
+# Asset Bundle — one bundle, targets stamped per opco_{opco}_{env}.
 #
 # Targets below are the generated form for two OpCos; M2 adds the generator
 # that renders this from opcos/*.yml so the file is never edited by hand.
@@ -17,19 +17,19 @@ variables:
 resources:
   pipelines:
     pos_silver:
-      name: ${var.opco}-pos-silver
+      name: opco-${var.opco}-pos-silver
       catalog: ${var.catalog}
       serverless: true
       libraries:
         - file:
             path: ../pipelines/silver_sales.py
       configuration:
-        lkh.opco: ${var.opco}
-        lkh.catalog: ${var.catalog}
+        opco.token: ${var.opco}
+        opco.catalog: ${var.catalog}
 
   jobs:
     pos_ingest:
-      name: ${var.opco}-pos-ingest
+      name: opco-${var.opco}-pos-ingest
       tasks:
         - task_key: ingest_rest_entities
           spark_python_task:
@@ -37,14 +37,14 @@ resources:
             parameters: ["--source", "vendapos", "--opco", "${var.opco}"]
 
 targets:
-  alp_dev:
+  opco_alp_dev:
     default: true
-    variables: { opco: alp, catalog: pos_alp_dev }
-  alp_prd:
+    variables: { opco: alp, catalog: opco_pos_alp_dev }
+  opco_alp_prd:
     mode: production
-    variables: { opco: alp, catalog: pos_alp_prd }
-  bor_dev:
-    variables: { opco: bor, catalog: pos_bor_dev }
-  bor_prd:
+    variables: { opco: alp, catalog: opco_pos_alp_prd }
+  opco_bor_dev:
+    variables: { opco: bor, catalog: opco_pos_bor_dev }
+  opco_bor_prd:
     mode: production
-    variables: { opco: bor, catalog: pos_bor_prd }
+    variables: { opco: bor, catalog: opco_pos_bor_prd }

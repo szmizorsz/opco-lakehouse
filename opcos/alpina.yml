@@ -10,7 +10,7 @@ status: active
 timezone: Europe/Vienna
 environments: [dev, uat, prd]
 
-# Source-aligned domains; catalog naming: {domain}_{opco}_{env}  →  pos_alp_prd
+# Source-aligned domains; catalog naming: opco_{domain}_{opco}_{env}  →  opco_pos_alp_prd
 domains:
   pos:
     source: vendapos            # REST API — see ingestion/sources/vendapos.yml
@@ -23,10 +23,10 @@ domains:
 
 # Per-OpCo identity & isolation (full profile only)
 platform:
-  deployment_spn: SVC-LKH-ALP-DEPLOY
-  jobs_spn: SVC-LKH-ALP-JOBS
-  entra_group_prefix: "RBAC-LKH-ALP"
-  storage_prefix: "lkh-alp"     # external locations: {domain}-{opco}-{env}
+  deployment_spn: SVC-OPCO-ALP-DEPLOY
+  jobs_spn: SVC-OPCO-ALP-JOBS
+  entra_group_prefix: "RBAC-OPCO-ALP"
+  storage_prefix: "opco-alp"    # external locations: opco-{domain}-{opco}-{env}
 
 # Which shared gold/semantic products this OpCo feeds
 contributes_to:

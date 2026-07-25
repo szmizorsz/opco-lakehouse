@@ -19,10 +19,10 @@ domains:
     source: file_drops
 
 platform:
-  deployment_spn: SVC-LKH-BOR-DEPLOY
-  jobs_spn: SVC-LKH-BOR-JOBS
-  entra_group_prefix: "RBAC-LKH-BOR"
-  storage_prefix: "lkh-bor"
+  deployment_spn: SVC-OPCO-BOR-DEPLOY
+  jobs_spn: SVC-OPCO-BOR-JOBS
+  entra_group_prefix: "RBAC-OPCO-BOR"
+  storage_prefix: "opco-bor"
 
 contributes_to:
   - daily_sales

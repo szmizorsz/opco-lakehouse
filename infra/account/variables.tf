@@ -33,5 +33,5 @@ variable "existing_metastore_id" {
 variable "resource_group_name" {
   description = "Resource group that holds the shared, per-env workspaces."
   type        = string
-  default     = "rg-lkh-platform"
+  default     = "rg-opco-platform"
 }

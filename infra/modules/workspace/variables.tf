@@ -1,5 +1,5 @@
 variable "name" {
-  description = "Workspace name, e.g. adb-lkh-dev."
+  description = "Workspace name, e.g. adb-opco-dev."
   type        = string
 }
 

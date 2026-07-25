@@ -2,7 +2,7 @@
 
 The OpCo token arrives as a pipeline configuration value (set by the bundle
 target, which is generated from the OpCo parameter pack). The same code runs
-as `alp-pos-silver` and `bor-pos-silver`; nothing here knows an OpCo by name.
+as `opco-alp-pos-silver` and `opco-bor-pos-silver`; nothing here knows an OpCo by name.
 
 Quality gates follow the contract-first pattern: expectations are generated
 from the ODCS data contract for `sales` (contracts/sales.odcs.yml — M2), with
@@ -13,8 +13,8 @@ instead of silently "clean".
 import dlt
 from pyspark.sql import functions as F
 
-OPCO = spark.conf.get("lkh.opco")          # e.g. "alp" — injected per bundle target
-CATALOG = spark.conf.get("lkh.catalog")    # e.g. "pos_alp_dev"
+OPCO = spark.conf.get("opco.token")         # e.g. "alp" — injected per bundle target
+CATALOG = spark.conf.get("opco.catalog")    # e.g. "opco_pos_alp_dev"
 
 SALES_EXPECTATIONS = {
     "valid_sale_id": "saleId IS NOT NULL",

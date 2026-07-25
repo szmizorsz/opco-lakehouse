@@ -70,25 +70,25 @@ variables, so the key is passed per-stack via `-backend-config=*.tfbackend`. Loc
 ### 2.4 Resource inventory (the end state)
 
 **Stack 0 — `bootstrap/`**
-- `rg-lkh-mgmt` (management RG, outside every Terraform lifecycle)
-- `stlkhtfstate<suffix>` state SA — LRS, `shared_access_key_enabled = false`, blob versioning +
+- `rg-opco-mgmt` (management RG, outside every Terraform lifecycle)
+- `stopcotfstate<suffix>` state SA — LRS, `shared_access_key_enabled = false`, blob versioning +
   soft-delete
 - container `tfstate`; RBAC `Storage Blob Data Contributor` to admins + CI SPN
 
 **Stack 1 — `account/`** *(regional foundation — see [iteration 1](iteration-1-foundation.md))*
 - `databricks_metastore` — one per region, no metastore-root storage (catalog-level storage instead)
-- `azurerm_databricks_workspace` × env — `adb-lkh-{env}`, Premium SKU
+- `azurerm_databricks_workspace` × env — `adb-opco-{env}`, Premium SKU
 - `databricks_metastore_assignment` × env
-- `databricks_group` `RBAC-LKH-PLATFORM-Admin` (+ end-state: account SPN for CI, metastore admin)
+- `databricks_group` `RBAC-OPCO-PLATFORM-Admin` (+ end-state: account SPN for CI, metastore admin)
 
 **Stack 2 — `platform/`** *(per OpCo × env, from `opcos/{opco}.yml`)* — for each `domain` × `env`:
 - `azurerm_storage_account` per OpCo (ADLS Gen2, HNS) + container `{storage_prefix}-{env}` per env
 - `azurerm_databricks_access_connector` per OpCo + `Storage Blob Data Contributor` role assignment
 - `databricks_storage_credential` (wraps the access connector) + `databricks_external_location`
-  `{domain}-{opco}-{env}`
-- `databricks_catalog` `{domain}_{opco}_{env}` + `databricks_schema` `bronze` / `silver` / `quarantine`
-- `databricks_service_principal` `SVC-LKH-{OPCO}-DEPLOY` and `SVC-LKH-{OPCO}-JOBS`
-- `databricks_group` `RBAC-LKH-{OPCO}-{role}` + `databricks_grants` on catalogs/schemas (grants as code)
+  `opco-{domain}-{opco}-{env}`
+- `databricks_catalog` `opco_{domain}_{opco}_{env}` + `databricks_schema` `bronze` / `silver` / `quarantine`
+- `databricks_service_principal` `SVC-OPCO-{OPCO}-DEPLOY` and `SVC-OPCO-{OPCO}-JOBS`
+- `databricks_group` `RBAC-OPCO-{OPCO}-{role}` + `databricks_grants` on catalogs/schemas (grants as code)
 
 **Stack 3 — `networking/`** *(secure profile, optional, per env)*
 - `azurerm_virtual_network` + host/container subnets (VNet injection), NSGs

@@ -17,7 +17,7 @@ resource "azurerm_resource_group" "platform" {
 module "metastore" {
   source = "../modules/metastore"
   count  = var.existing_metastore_id == "" ? 1 : 0
-  name   = "lkh-metastore-${var.region}"
+  name   = "opco-metastore-${var.region}"
   region = var.region
 }
 
@@ -31,7 +31,7 @@ module "workspace" {
   source   = "../modules/workspace"
   for_each = toset(var.environments)
 
-  name                = "adb-lkh-${each.key}"
+  name                = "adb-opco-${each.key}"
   env                 = each.key
   resource_group_name = azurerm_resource_group.platform.name
   location            = var.region
@@ -45,8 +45,8 @@ resource "databricks_metastore_assignment" "this" {
 }
 
 # Account-level group — the platform team. Per-OpCo RBAC groups
-# (RBAC-LKH-{OPCO}-{role}) are created in the platform/ stack; this is the
+# (RBAC-OPCO-{OPCO}-{role}) are created in the platform/ stack; this is the
 # group-wide admin group that owns the metastore and templates.
 resource "databricks_group" "platform_admins" {
-  display_name = "RBAC-LKH-PLATFORM-Admin"
+  display_name = "RBAC-OPCO-PLATFORM-Admin"
 }

@@ -94,8 +94,8 @@ Terminology, stated precisely so the decision isn't misread:
 **Number of workspaces is an orthogonal axis — driven by environment/network, not by OpCo.** The
 free profile runs a single workspace (Free Edition allows one workspace / one metastore per account).
 The full Azure profile typically runs **one workspace per environment** (dev/uat/prd), all attached
-to the *same* regional metastore, with env-suffixed catalogs (`pos_alp_dev` vs `pos_alp_prd`) bound
-to their environment's workspace. In every case an OpCo remains a set of catalogs, never a workspace.
+to the *same* regional metastore, with env-suffixed catalogs (`opco_pos_alp_dev` vs `opco_pos_alp_prd`)
+bound to their environment's workspace. In every case an OpCo remains a set of catalogs, never a workspace.
 
 ```mermaid
 flowchart TB
@@ -110,15 +110,15 @@ flowchart TB
       subgraph CATS["Catalogs — the OpCo boundary"]
         direction LR
         subgraph ALP["OpCo Alpina · token alp"]
-          A1["pos_alp_prd"]
-          A2["erp_alp_prd"]
+          A1["opco_pos_alp_prd"]
+          A2["opco_erp_alp_prd"]
         end
         subgraph BOR["OpCo Boreal · token bor"]
-          B1["pos_bor_prd"]
-          B2["erp_bor_prd"]
+          B1["opco_pos_bor_prd"]
+          B2["opco_erp_bor_prd"]
         end
         subgraph GRP["Group-level"]
-          G1["gold_group_prd"]
+          G1["opco_gold_group_prd"]
           G2["semantics"]
         end
       end
@@ -132,8 +132,8 @@ flowchart TB
 ```
 
 *Free profile collapses the Workspaces box to a single workspace; the account → metastore →
-catalog structure is identical. Env is a catalog suffix (`pos_alp_dev` vs `pos_alp_prd`), not a
-separate account.*
+catalog structure is identical. Env is a catalog suffix (`opco_pos_alp_dev` vs `opco_pos_alp_prd`),
+not a separate account.*
 
 Rationale for drawing the OpCo boundary at the catalog rather than at a per-OpCo workspace:
 

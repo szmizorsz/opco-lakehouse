@@ -1,5 +1,5 @@
 variable "name" {
-  description = "Metastore name, e.g. lkh-metastore-westeurope."
+  description = "Metastore name, e.g. opco-metastore-westeurope."
   type        = string
 }
 
