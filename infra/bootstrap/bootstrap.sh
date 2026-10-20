@@ -17,8 +17,15 @@ MGMT_RG="${MGMT_RG:-rg-opco-mgmt}"
 STATE_SA="${STATE_SA:?set STATE_SA to a globally-unique name, e.g. stopcotfstate<suffix>}"
 STATE_CONTAINER="${STATE_CONTAINER:-tfstate}"
 
+# Datapao's subscription enforces mandatory tags via Azure Policy ("Tagging"):
+# every resource group needs CostCenter + ResourceGroupOwner (a @datapao.com
+# email). Applied to everything this script creates, or creation is policy-denied.
+COST_CENTER="${COST_CENTER:-paodemos}"
+RG_OWNER="${RG_OWNER:?set RG_OWNER to your <first.last>@datapao.com account}"
+TAGS=(CostCenter="${COST_CENTER}" ResourceGroupOwner="${RG_OWNER}" platform=opco-lakehouse)
+
 echo "==> Resource group: ${MGMT_RG} (${LOCATION})"
-az group create --name "${MGMT_RG}" --location "${LOCATION}" -o none
+az group create --name "${MGMT_RG}" --location "${LOCATION}" --tags "${TAGS[@]}" -o none
 
 echo "==> Storage account: ${STATE_SA} (LRS, Entra-only, no shared keys)"
 az storage account create \
@@ -30,6 +37,7 @@ az storage account create \
   --min-tls-version TLS1_2 \
   --allow-blob-public-access false \
   --allow-shared-key-access false \
+  --tags "${TAGS[@]}" \
   -o none
 
 echo "==> Blob versioning + soft delete (state time machine)"

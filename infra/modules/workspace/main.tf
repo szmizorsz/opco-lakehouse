@@ -11,8 +11,5 @@ resource "azurerm_databricks_workspace" "this" {
   sku                         = "premium"
   managed_resource_group_name = "${var.resource_group_name}-${var.env}-managed"
 
-  tags = {
-    platform = "opco-lakehouse"
-    env      = var.env
-  }
+  tags = var.tags
 }

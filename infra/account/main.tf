@@ -7,9 +7,20 @@
 # Per-OpCo catalogs, external locations, SPNs and grants live in platform/, not
 # here — this stack knows nothing about individual OpCos.
 
+# Datapao Azure Policy ("Tagging") requires these on every RG; propagated to
+# the workspaces too so their tags are consistent.
+locals {
+  common_tags = {
+    CostCenter         = var.cost_center
+    ResourceGroupOwner = var.resource_group_owner
+    platform           = "opco-lakehouse"
+  }
+}
+
 resource "azurerm_resource_group" "platform" {
   name     = var.resource_group_name
   location = var.region
+  tags     = local.common_tags
 }
 
 # Create-vs-reuse (ADR-0001): only one metastore may exist per region per account.
@@ -35,6 +46,7 @@ module "workspace" {
   env                 = each.key
   resource_group_name = azurerm_resource_group.platform.name
   location            = var.region
+  tags                = merge(local.common_tags, { env = each.key })
 }
 
 # Attach every environment workspace to the regional metastore (created or reused).

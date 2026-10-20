@@ -35,3 +35,14 @@ variable "resource_group_name" {
   type        = string
   default     = "rg-opco-platform"
 }
+
+variable "cost_center" {
+  description = "Datapao CostCenter tag — Azure Policy requires it on every resource group."
+  type        = string
+  default     = "paodemos"
+}
+
+variable "resource_group_owner" {
+  description = "ResourceGroupOwner tag — a <first.last>@datapao.com account (Azure Policy)."
+  type        = string
+}

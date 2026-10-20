@@ -17,3 +17,9 @@ variable "location" {
   description = "Azure region — must match the metastore's region."
   type        = string
 }
+
+variable "tags" {
+  description = "Tags applied to the workspace (Datapao policy: CostCenter, ResourceGroupOwner)."
+  type        = map(string)
+  default     = {}
+}
